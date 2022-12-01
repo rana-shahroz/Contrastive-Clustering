@@ -7,7 +7,7 @@ CS 4262 : Final Project. The effect of different similarity metrics in Contrasti
 - Implement data loaders 
   - MNIST 
   - CIFAR10
-  -CIFAR100
+  - CIFAR100
 - Implement Scores : [ACC, ARI, NMI]
 - Implement Logging.
 
