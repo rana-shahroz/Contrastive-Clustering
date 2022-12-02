@@ -29,19 +29,21 @@ def train(args, train_loader, test_loader, optimizer, network, instance_loss, cl
             optimizer.step()
             loss_e += loss.item()
             
-            if steps % 10 == 0 : 
+            if steps % 200 == 0 : 
                 display_bar.set_description(f"[Epochs: {epoch + 1}/{args.epochs - args.start_epoch}] "
                                 f"Loss: {loss.item():.6f}" )
         
-        nmi, ari, acc = evaluate_model(args, network, test_loader, device)
+        if epoch % 5 == 0 or epoch == args.epochs-1 : 
+            nmi, ari, acc = evaluate_model(args, network, test_loader, device)
+            
+            display_bar.set_description(f"[Epochs: {epoch + 1} / {args.epochs - args.start_epoch}]  "
+                                f"Loss: {loss_e/steps:.6f}  ACC: {acc:.6f}  NMI: {nmi:.6f}  ARI: {ari:.6f}\t"
+                                )
         
-        display_bar.set_description(f"[Epochs: {epoch + 1} / {args.epochs - args.start_epoch}]  "
-                            f"Loss: {loss_e/steps:.6f}  ACC: {acc:.6f}  NMI: {nmi:.6f}  ARI: {ari:.6f}\t"
-                            )
+            ACC[epoch] = acc
+            NMI[epoch] = nmi
+            ARI[epoch] = ari
         
-        ACC[epoch] = acc
-        NMI[epoch] = nmi
-        ARI[epoch] = ari
         
         if epoch % 10 == 0 : 
             save_current(args, network, optimizer, epoch)
