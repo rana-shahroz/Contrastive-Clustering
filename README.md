@@ -2,14 +2,14 @@
 CS 4262 : Final Project. The effect of different similarity metrics in Contrastive Clustering.
 
 ## TODO : 
-- Implement the Train Functions
-- Implement Transforms
-- Implement data loaders 
-  - MNIST 
-  - CIFAR10
-  - CIFAR100
-- Implement Scores : [ACC, ARI, NMI]
-- Implement Logging.
+- ~~Implement the Train Functions~~
+- ~~Implement Transforms~~
+- ~~Implement data loaders~~ 
+  - ~~MNIST~~
+  - ~~CIFAR10~~
+  - ~~CIFAR100~~
+- ~~Implement Scores : [ACC, ARI, NMI]~~
+- ~~Implement Logging.~~
 
 
 ### References
