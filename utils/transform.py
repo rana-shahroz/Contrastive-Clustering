@@ -26,8 +26,8 @@ class GaussianBlur() :
 class Transforms() : 
     
     def __init__(self, size, s = 1.0, mean = None, std = None, blur = False) : 
-        # Transform for train images and test images is same
-        self.transform = [
+        # Transform for train images and test images
+        self.train_transform = [
             tv.transforms.RandomResizedCrop(size = size),
             tv.transforms.RandomHorizonFlip(),
             tv.transforms.RandomApply([tv.transforms.ColorJitter(0.8 * s, 0.8*s, 0.8*s, 0.2*s)],
@@ -36,15 +36,22 @@ class Transforms() :
         ]
         
         if blur : 
-            self.transform.append(GaussianBlur(kernel_size=23))
+            self.train_transform.append(GaussianBlur(kernel_size=23))
         
-        self.transform.append(tv.transforms.ToTensor())
+        self.train_transform.append(tv.transforms.ToTensor())
         
+        self.test_transform = [
+            tv.transforms.Resize(size = (size,size)),
+            tv.transforms.ToTensor(),
+        ]
         if mean and std : 
-            self.transform.append(tv.transforms.Normalize(mean = mean, std=std))
+            self.train_transform.append(tv.transforms.Normalize(mean = mean, std=std))
+            self.test_transform.append(tv.transforms.Normalize(mean = means, std = std))
+            
         
-        self.transform = tv.transforms.Compose(self.transform)
+        self.train_transform = tv.transforms.Compose(self.train_transform)
+        self.test_transform = tv.transforms.Compose(self.test_transform)
         
         
     def __call__(self, X) : 
-        return self.transform(X), self.transform(X)
+        return self.train_transform(X), self.train_transform(X)

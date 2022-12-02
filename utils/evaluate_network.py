@@ -54,8 +54,37 @@ def get_preds(labels, preds, num_classes) :
 
 
 # We calculate Accuracy, Normalized Mutual Information Score, Adjusted Random Score.
-def evaluate_model(network, test_loader, device) : 
+def evaluate_model(args, network, test_loader, device) : 
+
     labels, preds = test(network, test_loader, device)
+    if args.dataset == 'CIFAR-100' : 
+        super_label = [
+            [72, 4, 95, 30, 55],
+            [73, 32, 67, 91, 1],
+            [92, 70, 82, 54, 62],
+            [16, 61, 9, 10, 28],
+            [51, 0, 53, 57, 83],
+            [40, 39, 22, 87, 86],
+            [20, 25, 94, 84, 5],
+            [14, 24, 6, 7, 18],
+            [43, 97, 42, 3, 88],
+            [37, 17, 76, 12, 68],
+            [49, 33, 71, 23, 60],
+            [15, 21, 19, 31, 38],
+            [75, 63, 66, 64, 34],
+            [77, 26, 45, 99, 79],
+            [11, 2, 35, 46, 98],
+            [29, 93, 27, 78, 44],
+            [65, 50, 74, 36, 80],
+            [56, 52, 47, 59, 96],
+            [8, 58, 90, 13, 48],
+            [81, 69, 41, 89, 85],
+        ]
+        preds_c = preds.copy()
+        for i in range(20) : 
+            for j in super_label[i] : 
+                preds[preds_c == j] = i
+    
     nmi = normalized_mutual_info_scores(labels, preds)
     ari = adjusted_rand_score(labels, preds)
     pred_adjusted = get_preds(labels, preds, len(set(labels)))

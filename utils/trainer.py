@@ -29,7 +29,7 @@ def trainer(args, train_loader, test_loader, network, instance_loss, cluster_los
             optimizer.step()
             loss_e += loss.item()
         
-        nmi, ari, acc = evaluate_model(network, test_loader, device)
+        nmi, ari, acc = evaluate_model(args, network, test_loader, device)
         
         display_bar.set_description(f"[Epochs : {epoch + 1} / {args.epochs - args.start_epoch}]\t"
                             f"Loss : {loss_e:.6f}\tACC : {acc:.6f}\tNMI =  : {nmi:.6f}\tARI =  : {ari:.6f}\t"
@@ -42,3 +42,5 @@ def trainer(args, train_loader, test_loader, network, instance_loss, cluster_los
             save_current(args, network, optimizer, epoch)
             
     save_current(args, network, optimizer, args.epochs)
+    
+    return ACC, NMI, ARI
