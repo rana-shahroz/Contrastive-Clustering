@@ -1,6 +1,7 @@
+import torch.nn as nn
 import torch
 import math
-from distances import get_similarty_metric
+from modules.distances import get_similarity_metric
 
 
 # Implementing the Loss for the Instance Contrastive Head 
@@ -23,57 +24,43 @@ from distances import get_similarty_metric
 #           l_i^a = -log [exp (similarity_metric(z_i^a, z_i^b)/tao_I)/ (Sum for z_i^a, z_i^b)]
 #       Technically just -log(P(sim(z_i^a, z_i^b))) = CrossEntropy lmao. 
 #       tao_I : Temperature parameter.
-
-class InstanceLoss(torch.nn.Module):
-    
-    def __init__(self, batch_size, temp, device) : 
-        # Setting up args for computations
+class InstanceLoss(nn.Module):
+    def __init__(self, batch_size, temperature, device):
         super(InstanceLoss, self).__init__()
         self.batch_size = batch_size
-        
-        # Number of samples [after augmentation it should be 2 * batch]
-        self.N = 2 * self.batch_size
-        self.temp = temp
+        self.temperature = temperature
         self.device = device
-        
-        # Generating a correlation mask.
-        self.mask = self._mask_correlated_samples()
-        self.criterion = torch.nn.CrossEntropyLoss(reduction = "sum")
-        
-    def _mask_correlated_samples(self) : 
-        mask = torch.ones((self.N,self.N))
-        
-        # Notice the diagonal of the mask is useless diag(mask) = (x_i,x_i) 
-        # for all i, which is not needed.
+
+        self.mask = self.mask_correlated_samples(batch_size)
+        self.criterion = nn.CrossEntropyLoss(reduction="sum")
+
+    def mask_correlated_samples(self, batch_size):
+        N = 2 * batch_size
+        mask = torch.ones((N, N))
         mask = mask.fill_diagonal_(0)
-        
-        for i in range(self.batch_size) :
-            # Taking care of the augmentation. The augmentations are stacked in such a way
-            # samples = [x_1^a, ..., x_N^a, x_1^b, ..., x_N^b] 
+        for i in range(batch_size):
             mask[i, batch_size + i] = 0
-            mask[batch + i, i] = 0
-            
-        return mask.bool()
-    
-    
-    def forward(self, Z_i, Z_j) : 
-        z = torch.cat((Z_i, Z_j), dim = 0)
-        
-        # Calculating the similarity using cosine distance 
-        sim = torch.matmul(z, z.T) / self.temp
+            mask[batch_size + i, i] = 0
+        mask = mask.bool()
+        return mask
+
+    def forward(self, z_i, z_j):
+        N = 2 * self.batch_size
+        z = torch.cat((z_i, z_j), dim=0)
+
+        sim = torch.matmul(z, z.T) / self.temperature
         sim_i_j = torch.diag(sim, self.batch_size)
         sim_j_i = torch.diag(sim, -self.batch_size)
-        
-        # Calculating positive Samples and Negative Samples
-        pos_samples = torch.cat((sim_i_j, sim_j_i), dim = 0).reshape(self.N, 1)
-        neg_samples = sim[self.mask].reshape(N,-1)
-        
-        # Pseudo Samples
-        labels = torch.zeros(self.N).to(self.device).long()
-        output = torch.cat((pos_samples, neg_samples), dim = 1)
+
+        positive_samples = torch.cat((sim_i_j, sim_j_i), dim=0).reshape(N, 1)
+        negative_samples = sim[self.mask].reshape(N, -1)
+
+        labels = torch.zeros(N).to(positive_samples.device).long()
+        logits = torch.cat((positive_samples, negative_samples), dim=1)
         loss = self.criterion(logits, labels)
-        
-        return loss /= self.N
+        loss /= N
+
+        return loss
 
 
 
@@ -90,69 +77,52 @@ class InstanceLoss(torch.nn.Module):
 #       cluster is a positive pair while outside is the negative pair.
 #   3. We change the distances here : Cosine \ Pairwise.
 #   4. To avoid trivial solutions we subtract entropy of cluster assignment probabilities.
-class ClusterLoss(torch.nn.Module) : 
-    
-    def __init__(self, num_classes, temp, device, similarity_metric = 'cosine') :
-        
+class ClusterLoss(nn.Module):
+    def __init__(self, class_num, temperature, device, similarity_metric):
         super(ClusterLoss, self).__init__()
-        # Setting up args for computations
-        self.num_classes = num_classes
-        self.similarity_metric = get_similarty_metric(similarity_metric)
-        self.temp = temp
-        # Number of samples [after augmentation it should be 2 * clusters]
-        self.N = 2 * num_classes
+        self.class_num = class_num
+        self.temperature = temperature
         self.device = device
-        
-        # Generating a correlation mask.
-        self.mask = self._mask_correlated_samples()
-        self.criterion = torch.nn.CrossEntropyLoss(reduction = 'sum')
-        
-    
-    def _mask_correlated_samples(self) :
-        mask = torch.ones((self.N,self.N))
-        
-        # Notice the diagonal of the mask is useless diag(mask) = (x_i,x_i) 
-        # for all i, which is not needed.
+
+        self.mask = self.mask_correlated_clusters(class_num)
+        self.criterion = nn.CrossEntropyLoss(reduction="sum")
+        self.similarity_f = get_similarity_metric(similarity_metric)
+
+    def mask_correlated_clusters(self, class_num):
+        N = 2 * class_num
+        mask = torch.ones((N, N))
         mask = mask.fill_diagonal_(0)
-        
-        for i in range(self.batch_size) :
-            # Taking care of the augmentation. The augmentations are stacked in such a way
-            # samples = [x_1^a, ..., x_N^a, x_1^b, ..., x_N^b] 
-            mask[i, batch_size + i] = 0
-            mask[batch + i, i] = 0
-            
-        return mask.bool()
-    
-    
-    def forward(self, C_i, C_j):
-        
-        def calculate_entropyi(C):
-            p = C.sum(0).view(-1)
-            p /= p.sum()
-            ne = math.log(p.size(0)) * (p * torch.log(p)).sum()
-            return ne
-        
-        entropy_loss = calculate_entropyi(C_i) + calculate_entropyi(C_j)
-        
-        C_i = C_i.t()
-        C_j = C_j.t()
-        C = torch.cat((C_i, C_j), dim=0)
-        
-        # Calculating the similarity
-        similarity = self.similarity_metric(c.unsqueeze(1), c.unsqueeze(0)) / self.temp
-        sim_i_j = torch.diag(similarity, self.num_classes)
-        sim_j_i = torch.diag(similarity, -self.num_classes)
-        
-        # Getting Positive and Negative Clusters
-        pos_clusters = torch.cat((sim_i_j, sim_j_i), dim = 0).reshape(self.N, 1)
-        neg_clusters = sim[self.mask].reshape(self.N,-1)
-        
-        # Getting labels, logits and calculating the loss
-        labels = torch.zeros(self.N).to(self.device).long()
-        logits = torch.cat((pos_clusters, neg_clusters), dim=1)
+        for i in range(class_num):
+            mask[i, class_num + i] = 0
+            mask[class_num + i, i] = 0
+        mask = mask.bool()
+        return mask
+
+    def forward(self, c_i, c_j):
+        p_i = c_i.sum(0).view(-1)
+        p_i /= p_i.sum()
+        ne_i = math.log(p_i.size(0)) + (p_i * torch.log(p_i)).sum()
+        p_j = c_j.sum(0).view(-1)
+        p_j /= p_j.sum()
+        ne_j = math.log(p_j.size(0)) + (p_j * torch.log(p_j)).sum()
+        ne_loss = ne_i + ne_j
+
+        c_i = c_i.t()
+        c_j = c_j.t()
+        N = 2 * self.class_num
+        c = torch.cat((c_i, c_j), dim=0)
+
+        # print((self.similarity_f(c.unsqueeze(1), c.unsqueeze(0))).shape)
+        sim = self.similarity_f(c.unsqueeze(1), c.unsqueeze(0)) / self.temperature
+        sim_i_j = torch.diag(sim, self.class_num)
+        sim_j_i = torch.diag(sim, -self.class_num)
+
+        positive_clusters = torch.cat((sim_i_j, sim_j_i), dim=0).reshape(N, 1)
+        negative_clusters = sim[self.mask].reshape(N, -1)
+
+        labels = torch.zeros(N).to(positive_clusters.device).long()
+        logits = torch.cat((positive_clusters, negative_clusters), dim=1)
         loss = self.criterion(logits, labels)
-        
-        # Total loss is average_loss + entropy
-        loss /= self.N
-        
-        return loss + entropy_loss
+        loss /= N
+
+        return loss + ne_loss

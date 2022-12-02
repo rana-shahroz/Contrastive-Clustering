@@ -1,0 +1,26 @@
+# general
+seed: 42
+num_workers: 8
+dataset_dir: "./data"
+device : 'cuda'
+num_classes : 10
+
+# train options
+batch_size: 256
+image_size: 224
+start_epoch: 0
+epochs: 2
+dataset: "CIFAR10" # CIFAR-10 / CIFAR-100 
+
+# model options
+resnet: "ResNet18" # ResNet18 / ResNet34 / ResNet50
+feature_dim: 128
+model_path: "save/CIFAR-10/Cosine"
+continue_before : False
+metric : 'cosine'
+
+# loss options
+learning_rate: 0.0003
+weight_decay: 0.
+instance_temperature: 0.5
+cluster_temperature: 1.0

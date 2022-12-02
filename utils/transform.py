@@ -29,7 +29,7 @@ class Transforms() :
         # Transform for train images and test images
         self.train_transform = [
             tv.transforms.RandomResizedCrop(size = size),
-            tv.transforms.RandomHorizonFlip(),
+            tv.transforms.RandomHorizontalFlip(),
             tv.transforms.RandomApply([tv.transforms.ColorJitter(0.8 * s, 0.8*s, 0.8*s, 0.2*s)],
                                       p = 0.8),
             tv.transforms.RandomGrayscale(p=0.2)

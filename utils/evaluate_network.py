@@ -1,22 +1,21 @@
 import torch
 import numpy as np 
-from sklearn.metrics import normalized_mutual_info_scores, adjusted_rand_score, confusion_matrix, accuracy_score
+from sklearn.metrics import normalized_mutual_info_score, adjusted_rand_score, confusion_matrix, accuracy_score
 from scipy.optimize import linear_sum_assignment
 from munkres import Munkres
 
 
 # Testing the model by making a pass on the test dataset
 def test(network, loader, device) : 
-    network.eval()
-    
+
     feature_vectors = []
     labels_vectors = []
     for i, (x,y) in enumerate(loader) : 
         x = x.to(device)
         with torch.no_grad() : 
-            cluster = network.forward_cluster(x).detach()
+            cluster = network.module.forward_cluster(x).detach()
         feature_vectors.extend(cluster.cpu().numpy())
-        labels.vectors.extend(y.numpy())
+        labels_vectors.extend(y.numpy())
         
     feature_vectors = np.array(feature_vectors)
     labels_vectors = np.array(labels_vectors)
@@ -55,7 +54,9 @@ def get_preds(labels, preds, num_classes) :
 
 # We calculate Accuracy, Normalized Mutual Information Score, Adjusted Random Score.
 def evaluate_model(args, network, test_loader, device) : 
-
+    network.eval()
+    for param in network.parameters():
+        param.requires_grad = False
     labels, preds = test(network, test_loader, device)
     if args.dataset == 'CIFAR-100' : 
         super_label = [
@@ -85,10 +86,13 @@ def evaluate_model(args, network, test_loader, device) :
             for j in super_label[i] : 
                 preds[preds_c == j] = i
     
-    nmi = normalized_mutual_info_scores(labels, preds)
+    nmi = normalized_mutual_info_score(labels, preds)
     ari = adjusted_rand_score(labels, preds)
     pred_adjusted = get_preds(labels, preds, len(set(labels)))
     acc = accuracy_score(pred_adjusted, labels)
     
+    network.train()
+    for param in network.parameters():
+        param.requires_grad = True
     return nmi, ari, acc
     

@@ -14,4 +14,4 @@ def get_similarity_metric(name) :
     elif name == 'pairwise' : 
         return pairwise_distance()
     else : 
-        raise ValueError("Not Implemented yet").
+        raise ValueError("Not Implemented yet")

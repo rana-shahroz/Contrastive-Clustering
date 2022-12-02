@@ -1,38 +1,38 @@
 import torchvision
-from transform import Tranforms
+from utils import transform
 from torch.utils import data
 
 
 def get_data_train(args) : 
     
-    if args.dataset == 'cifar10' : 
+    if args.dataset == 'CIFAR10' : 
         train_dataset = torchvision.datasets.CIFAR10(
             root = args.dataset_dir,
             download = True,
             train = True, 
-            transform = Transforms(size = args.image_size, s = 0.5),
+            transform = transform.Transforms(size = args.image_size, s = 0.5),
         )
         
         test_dataset = torchvision.datasets.CIFAR10(
             root = args.dataset_dir,
             download = True, 
             train = False, 
-            transform = Transforms(size = args.image_size, s = 0.5),
+            transform = transform.Transforms(size = args.image_size, s = 0.5),
         )
         dataset = data.ConcatDataset([train_dataset, test_dataset])
-    elif args.dataset == 'cifar100' : 
+    elif args.dataset == 'CIFAR100' : 
         train_dataset = torchvision.dataset.CIFAR100(
             root=args.dataset_dir,
             download=True,
             train=True,
-            transform=Transforms(size=args.image_size),
+            transform=transform.Transforms(size=args.image_size),
         )
     
         test_dataset = torchvision.dataset.CIFAR100(
             root=args.dataset_dir,
             download=True,
             train=False,
-            transform=Transforms(size=args.image_size),
+            transform=transform.Transforms(size=args.image_size),
         )
         dataset = data.ConcatDataset([train_dataset, test_dataset])
     else : 
@@ -52,34 +52,34 @@ def get_data_train(args) :
 
 def get_data_test(args) : 
     
-    if args.dataset == 'cifar10' : 
+    if args.dataset == 'CIFAR10' : 
         train_dataset = torchvision.datasets.CIFAR10(
             root = args.dataset_dir,
             download = True,
             train = True, 
-            transform = Transforms(size = args.image_size, s = 0.5).test_transform,
+            transform = transform.Transforms(size = args.image_size, s = 0.5).test_transform,
         )
         
         test_dataset = torchvision.datasets.CIFAR10(
             root = args.dataset_dir,
             download = True, 
             train = False, 
-            transform = Transforms(size = args.image_size, s = 0.5).test_transform,
+            transform = transform.Transforms(size = args.image_size, s = 0.5).test_transform,
         )
         dataset = data.ConcatDataset([train_dataset, test_dataset])
-    elif args.dataset == 'cifar100' : 
+    elif args.dataset == 'CIFAR100' : 
         train_dataset = torchvision.dataset.CIFAR100(
             root=args.dataset_dir,
             download=True,
             train=True,
-            transform=Transforms(size=args.image_size).test_transform,
+            transform=transform.Transforms(size=args.image_size).test_transform,
         )
     
         test_dataset = torchvision.dataset.CIFAR100(
             root=args.dataset_dir,
             download=True,
             train=False,
-            transform=Transforms(size=args.image_size).test_transform,
+            transform=transform.Transforms(size=args.image_size).test_transform,
         )
         dataset = data.ConcatDataset([train_dataset, test_dataset])
     else : 

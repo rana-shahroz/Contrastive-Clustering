@@ -10,7 +10,7 @@ class Model(torch.nn.Module):
         super(Model, self).__init__()
         self.backbone = backbone
         self.latent_dim = latent_dim
-        self.num_clusters = num_classes
+        self.num_classes = num_classes
         self.relu = torch.nn.ReLU
         
         # Network for Instance-Level Contrastive Head

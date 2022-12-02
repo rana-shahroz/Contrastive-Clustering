@@ -24,8 +24,8 @@ def get_args(filename = 'config/mnist.yaml') :
     config = yaml_config_hook(filename)
     for k, v in config.items() : 
         parser.add_argument(f'--{k}', default=v, type = type(v))
-    args = parser.parser_args()
-    if not os.path.exits(args.model_path):
+    args = parser.parse_args()
+    if not os.path.exists(args.model_path):
         os.makedirs(args.model_path)
         
     return args
