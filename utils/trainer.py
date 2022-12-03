@@ -21,7 +21,7 @@ def train(args, train_loader, test_loader, optimizer, network, instance_loss, cl
             optimizer.zero_grad()
             x_i = x_i.to(device)
             x_j = x_j.to(device)
-            z_i,z_j, c_i, c_j = network(x_i, x_j)
+            z_i,z_j, c_i, c_j, a, _ = network(x_i, x_j)
             loss_i = instance_loss(z_i, z_j)
             loss_c = cluster_loss(c_i, c_j)
             loss = loss_i + loss_c
@@ -29,7 +29,7 @@ def train(args, train_loader, test_loader, optimizer, network, instance_loss, cl
             optimizer.step()
             loss_e += loss.item()
             
-            if steps % 200 == 0 : 
+            if steps % 100 == 0 : 
                 display_bar.set_description(f"[Epochs: {epoch + 1}/{args.epochs - args.start_epoch}] "
                                 f"Loss: {loss.item():.6f}" )
         

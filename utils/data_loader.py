@@ -4,8 +4,22 @@ from torch.utils import data
 
 
 def get_data_train(args) : 
-    
-    if args.dataset == 'CIFAR10' : 
+    if args.dataset == 'MNIST' : 
+        train_dataset = torchvision.datasets.MNIST(
+            root = args.dataset_dir,
+            download = True,
+            train = True,
+            transform = transform.Transforms(size = args.image_size, s= 0.5),
+        )
+
+        test_dataset = torchvision.datasets.MNIST(
+            root = args.dataset_dir,
+            download = True,
+            train = False,
+            transform = transform.Transforms(size = args.image_size, s= 0.5),
+        )
+        dataset = data.ConcatDataset([train_dataset, test_dataset])
+    elif args.dataset == 'CIFAR10' : 
         train_dataset = torchvision.datasets.CIFAR10(
             root = args.dataset_dir,
             download = True,
@@ -37,7 +51,6 @@ def get_data_train(args) :
         dataset = data.ConcatDataset([train_dataset, test_dataset])
     else : 
         raise NotImplementedError
-    
     data_loader = data.DataLoader(
         dataset, 
         batch_size = args.batch_size,
@@ -52,7 +65,22 @@ def get_data_train(args) :
 
 def get_data_test(args) : 
     
-    if args.dataset == 'CIFAR10' : 
+    if args.dataset == 'MNIST' : 
+        train_dataset = torchvision.datasets.MNIST(
+            root = args.dataset_dir,
+            download = True,
+            train = True,
+            transform = transform.Transforms(size = args.image_size, s= 0.5).test_transform,
+        )
+
+        test_dataset = torchvision.datasets.MNIST(
+            root = args.dataset_dir,
+            download = True,
+            train = False,
+            transform = transform.Transforms(size = args.image_size, s= 0.5).test_transform,
+        )
+        dataset = data.ConcatDataset([train_dataset, test_dataset])
+    elif args.dataset == 'CIFAR10' : 
         train_dataset = torchvision.datasets.CIFAR10(
             root = args.dataset_dir,
             download = True,

@@ -7,7 +7,7 @@ from modules import resnet, models, losses
 
 if __name__ == '__main__' : 
     # Reading Config File
-    args = read_config.get_args(filename = 'Configs/cifar10-cosine.yaml')
+    args = read_config.get_args(filename = 'Configs/config.yaml')
     
     # Setting up seeds
     torch.manual_seed(args.seed)

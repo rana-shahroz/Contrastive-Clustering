@@ -15,17 +15,17 @@ class Model(torch.nn.Module):
         
         # Network for Instance-Level Contrastive Head
         self.instance_projector = torch.nn.Sequential(
-            torch.nn.Linear(self.backbone.rep_dim, self.backbone.rep_dim),
+            torch.nn.Linear(3, 512),
             self.relu(),
-            torch.nn.Linear(self.backbone.rep_dim, self.latent_dim),
+            torch.nn.Linear(512, self.latent_dim),
         )
         
         
         # Network for Cluster-Level Contrastive Head
         self.cluster_projector = torch.nn.Sequential(
-            torch.nn.Linear(self.backbone.rep_dim, self.backbone.rep_dim),
+            torch.nn.Linear(3, 512),
             self.relu(),
-            torch.nn.Linear(self.backbone.rep_dim, self.num_classes),
+            torch.nn.Linear(512, self.num_classes),
             torch.nn.Softmax(dim=1)
         )
         
@@ -43,7 +43,7 @@ class Model(torch.nn.Module):
         C_1 = self.cluster_projector(H_1)
         C_2 = self.cluster_projector(H_2)
         
-        return Z_1, Z_2, C_1, C_2
+        return Z_1, Z_2, C_1, C_2, H_1, H_2
     
     
     def forward_cluster(self, X) : 
