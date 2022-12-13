@@ -9,18 +9,18 @@ num_classes : 10
 batch_size: 256
 image_size: 64
 start_epoch: 0
-epochs: 80
-dataset: "MNIST" # CIFAR-10 / CIFAR-100 
+epochs: 20
+dataset: "MNIST" # CIFAR-10 / CIFAR-100 / MNIST
 
 # model options
 resnet: "ResNet18" # ResNet18 / ResNet34 / ResNet50
 feature_dim: 128
-model_path: "save/MNIST/Vanilla"
+model_path: "save/LearningK/iter1" 
 continue_before : False
-metric : 'cosine'
+metric : False
 
 # loss options
 learning_rate: 0.0003
-weight_decay: 0.
+weight_decay: None
 instance_temperature: 0.5
 cluster_temperature: 1.0

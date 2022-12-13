@@ -28,12 +28,12 @@ class Model(torch.nn.Module):
             torch.nn.Linear(512, self.num_classes),
             torch.nn.Softmax(dim=1)
         )
-        
+    
         
     def forward(self, X_1, X_2) : 
         # Encoding the X_1 and X_2 using our backbone network
-        H_1 = self.backbone(X_1)
-        H_2 = self.backbone(X_2)
+        H_1 = normalize(self.backbone(X_1))
+        H_2 = normalize(self.backbone(X_2))
         
         # Getting Instance level projections
         Z_1 = normalize(self.instance_projector(H_1), dim=1)
@@ -48,6 +48,6 @@ class Model(torch.nn.Module):
     
     def forward_cluster(self, X) : 
         # For assigning clusters 
-        H = self.backbone(X)
+        H = normalize(self.backbone(X))
         C = self.cluster_projector(H)
         return torch.argmax(C, dim=1)

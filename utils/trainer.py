@@ -3,6 +3,14 @@ from tqdm import tqdm
 from utils.evaluate_network import evaluate_model
 from utils.save_model import save_current
 
+def align_loss(x, y, alpha=2):
+    return (x - y).norm(p=2, dim=1).pow(alpha).mean()
+
+
+def uniform_loss(x, t=2):
+    return torch.pdist(x, p=2).pow(2).mul(-t).exp().mean().log()
+
+
 def train(args, train_loader, test_loader, optimizer, network, instance_loss, cluster_loss, device) : 
 
     ACC = {}
@@ -21,10 +29,31 @@ def train(args, train_loader, test_loader, optimizer, network, instance_loss, cl
             optimizer.zero_grad()
             x_i = x_i.to(device)
             x_j = x_j.to(device)
-            z_i,z_j, c_i, c_j, a, _ = network(x_i, x_j)
+            z_i,z_j, c_i, c_j, Ha, Hb = network(x_i, x_j)
+            
+            # Instance Level Loss
             loss_i = instance_loss(z_i, z_j)
+            
+            # Cluster Level Loss
             loss_c = cluster_loss(c_i, c_j)
-            loss = loss_i + loss_c
+            
+            # Contrastive Loss
+            loss_contrastive = loss_i + loss_c
+            
+            # Uniformity Loss 
+            loss_uniformity = uniform_loss(Ha) + uniform_loss(Hb)
+            
+            # # Allign Loss 
+            # loss_allign = align_loss(Ha, Hb)
+            
+            # Total Loss 
+            if args.metric : 
+                print("Should not come here")
+                loss = 0.90 * loss_contrastive  + 0.1 * loss_uniformity
+            else : 
+                
+                loss = loss_contrastive
+            
             loss.backward()
             optimizer.step()
             loss_e += loss.item()

@@ -11,7 +11,7 @@ def test(network, loader, device) :
     feature_vectors = []
     labels_vectors = []
     for i, (x,y) in enumerate(loader) : 
-        x = x.to(device)
+        x = x[0].to(device)
         with torch.no_grad() : 
             cluster = network.module.forward_cluster(x).detach()
         feature_vectors.extend(cluster.cpu().numpy())
@@ -53,7 +53,7 @@ def get_preds(labels, preds, num_classes) :
 
 
 # We calculate Accuracy, Normalized Mutual Information Score, Adjusted Random Score.
-def evaluate_model(args, network, test_loader, device) : 
+def evaluate_model(network, test_loader, device) : 
     network.eval()
     for param in network.parameters():
         param.requires_grad = False
