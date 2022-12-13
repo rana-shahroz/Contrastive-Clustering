@@ -10,10 +10,10 @@ CS 4262 : Final Project : Learning Better Embeddings for Contrastive Methods for
   - ~~CIFAR100~~
 - ~~Implement Scores : [ACC, ARI, NMI]~~
 - ~~Implement Logging.~~
-- Plot the MNIST Embedding Space as a unit sphere.
-- Add the regularizer to the loss.
-- Plot the new MNIST Embedding Space as a unit sphere.
-- Freeze the resnet and perform Elbow Method to find the optimal K after training on K = 5.
+- ~~Plot the MNIST Embedding Space as a unit sphere.~~
+- ~~Add the regularizer to the loss.~~
+- ~~Plot the new MNIST Embedding Space as a unit sphere.~~
+- ~~Freeze the resnet and perform Elbow Method to find the optimal K after training on K = 5.~~
 
 
 ### References
